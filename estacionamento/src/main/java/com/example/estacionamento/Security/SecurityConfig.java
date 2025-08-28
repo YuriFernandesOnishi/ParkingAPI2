@@ -87,7 +87,9 @@ public class SecurityConfig {
 
                 // Define as rotas públicas e protegidas
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Permite acesso sem autenticação às rotas de login/cadastro
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/veiculos/entrada").permitAll()
+                        .requestMatchers("/api/veiculos/saida/**").permitAll()// Permite acesso sem autenticação às rotas de login/cadastro
                         .anyRequest().authenticated() // Qualquer outra rota exige autenticação
                 )
 
