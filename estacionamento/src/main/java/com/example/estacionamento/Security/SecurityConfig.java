@@ -91,11 +91,8 @@ public class SecurityConfig {
                 // Define as rotas públicas e protegidas
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/veiculos/entrada").permitAll()
-                        .requestMatchers("/api/veiculos/saida/**").permitAll()
-                        .requestMatchers("/api/veiculos").permitAll()
-                        .requestMatchers("/api/veiculos/**").permitAll()// Permite acesso sem autenticação às rotas de login/cadastro
-                        .anyRequest().authenticated() // Qualquer outra rota exige autenticação
+                        .requestMatchers("/api/veiculos/**").permitAll() // cobre todos os endpoints de veículos
+                        .anyRequest().authenticated()
                 )
 
                 // Define que a aplicação não usa sessões (stateless, ideal para JWT)

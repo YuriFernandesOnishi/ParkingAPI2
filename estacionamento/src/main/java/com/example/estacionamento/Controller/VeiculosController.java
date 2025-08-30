@@ -27,7 +27,7 @@ public class VeiculosController {
         return ResponseEntity.ok(veiculosDTO);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<VeiculosDTO> pesquisarVeiculo(@PathVariable int id) {
         Veiculos veiculo = veiculosService.buscarPorId(id);
         if (veiculo != null) {
@@ -55,9 +55,9 @@ public class VeiculosController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
-    @PutMapping("/saida/{id}")
-    public ResponseEntity<VeiculoRespostaDTO> liberarSaidaPorPlaca(@PathVariable int id) {
-        VeiculosDTO dto = veiculosService.liberarSaida(id);
+    @PutMapping("/saida")
+    public ResponseEntity<VeiculoRespostaDTO> liberarSaidaPorPlaca(@RequestBody Veiculos veiculos) {
+        VeiculosDTO dto = veiculosService.liberarSaida(veiculos);
         VeiculoRespostaDTO resposta = new VeiculoRespostaDTO("Saída liberada com sucesso", dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }

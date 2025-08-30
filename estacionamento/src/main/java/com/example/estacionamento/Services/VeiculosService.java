@@ -36,17 +36,16 @@ public class VeiculosService {
         return convertToDTO(salvo);
     }
 
-    public VeiculosDTO liberarSaida(int id) {
-        Optional<Veiculos> veiculosOptional = veiculosRepository.findById(id);
-        if (veiculosOptional.isPresent()) {
-            Veiculos veiculo = veiculosOptional.get();
-            veiculo.setDataSaida(LocalDate.now());
-            veiculo.setHorarioSaida(LocalTime.now());
-            veiculo.calcularValor(10); // Supondo valorHora = 10
-            Veiculos salvo = veiculosRepository.save(veiculo);
-            return convertToDTO(salvo);
-        }
-        throw new RuntimeException("Veículo não encontrado!");
+    public VeiculosDTO liberarSaida(Veiculos veiculos) {
+        Veiculos veiculo = veiculosRepository.findByPlacaActive(veiculos.getPlaca())
+                .orElseThrow(() -> new RuntimeException("Veículo não encontrado!"));
+
+        veiculo.setDataSaida(LocalDate.now());
+        veiculo.setHorarioSaida(LocalTime.now());
+        veiculo.calcularValor(10);
+
+        Veiculos salvo = veiculosRepository.save(veiculo);
+        return convertToDTO(salvo);
     }
 
     public VeiculosDTO convertToDTO(Veiculos veiculo) {
