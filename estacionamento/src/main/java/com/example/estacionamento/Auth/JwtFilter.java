@@ -1,5 +1,5 @@
 // Pacote onde está localizada a classe de segurança
-package com.example.estacionamento.Security;
+package com.example.estacionamento.Auth;
 
 // Importações necessárias
 import com.example.estacionamento.Auth.JwtUtil;
