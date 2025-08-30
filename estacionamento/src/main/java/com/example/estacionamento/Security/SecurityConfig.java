@@ -82,6 +82,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http,
                                            DaoAuthenticationProvider authenticationProvider) throws Exception {
         http
+                .cors() // <--- ativa o CORS com o bean definido
+                .and()
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
