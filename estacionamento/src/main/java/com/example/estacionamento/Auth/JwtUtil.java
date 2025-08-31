@@ -25,8 +25,13 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        try {
+            return extractAllClaims(token).getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
+
 
     public boolean validateToken(String token, UserDetails userDetails) {
         String username = extractUsername(token);
