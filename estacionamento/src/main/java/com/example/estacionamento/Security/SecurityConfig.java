@@ -1,7 +1,5 @@
-// Pacote da configuração de segurança
 package com.example.estacionamento.Security;
 
-// Importações necessárias
 import com.example.estacionamento.Auth.JwtFilter;
 import com.example.estacionamento.Entity.Usuario;
 import com.example.estacionamento.Repository.UsuarioRepository;
@@ -16,6 +14,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,7 +30,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-// Define esta classe como uma classe de configuração do Spring
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -40,54 +38,55 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final UsuarioRepository usuarioRepository;
 
-    // Bean responsável por codificar senhas com BCrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Carrega usuário pelo e-mail (Spring Security usa esse serviço)
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> {
             Usuario user = usuarioRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-            // Agora retorna o usuário com a role "USER"
             return User.withUsername(user.getEmail())
                     .password(user.getSenha())
-                    .roles("USER") // pode trocar depois para user.getRole()
+                    .roles("USER")
                     .build();
         };
     }
 
-    // Provedor de autenticação customizado
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder encoder,
-                                                            UserDetailsService uds) {
+    public DaoAuthenticationProvider authenticationProvider(
+            PasswordEncoder encoder,
+            UserDetailsService uds
+    ) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(uds);
         provider.setPasswordEncoder(encoder);
         return provider;
     }
 
-    // AuthenticationManager padrão
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
-    // Cadeia de filtros de segurança
     @Bean
-    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http,
-                                           DaoAuthenticationProvider authenticationProvider) throws Exception {
+    public SecurityFilterChain filterChain(
+            org.springframework.security.config.annotation.web.builders.HttpSecurity http,
+            DaoAuthenticationProvider authenticationProvider
+    ) throws Exception {
         http
-                .cors() // <--- ativa o CORS com o bean definido
+                .cors()
                 .and()
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // libera tudo que estiver em /auth/*
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/veiculos/**").permitAll()
+                        // libera preflight OPTIONS
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS).permitAll()
+                        // protege API (mude se quiser algo diferente)
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -97,17 +96,15 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Configuração de CORS
+    // CORS - dev: permite tudo; em produção restrinja ao domínio real
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-
-        // "addAllowedOrigin" não suporta curingas de porta -> trocar por addAllowedOriginPattern
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
-
+        configuration.setAllowedOriginPatterns(List.of("*")); // dev: permitir qualquer origem
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization")); // expõe header Authorization para o front
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
